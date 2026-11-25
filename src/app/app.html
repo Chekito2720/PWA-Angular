@@ -1,0 +1,138 @@
+<div class="app-shell">
+  <header class="toolbar">
+    <button class="icon-btn" (click)="toggleDrawer()" aria-label="Menú">
+      <i class="material-icons">menu</i>
+    </button>
+    <span class="brand">UTEQGram</span>
+    <nav class="nav">
+      <button class="nav-link" (click)="showSnackbar('Estás en el Feed')">Feed</button>
+      <button class="nav-link" (click)="showSnackbar('UTEQGram — comparte tus momentos')">Help</button>
+      <button class="notify-btn" (click)="enableNotifications()">
+        {{ notificationLabel() }}
+      </button>
+    </nav>
+  </header>
+
+  @if (drawerOpen()) {
+    <div class="drawer-backdrop" (click)="toggleDrawer()"></div>
+    <aside class="drawer">
+      <div class="drawer-title">UTEQGram</div>
+      <nav class="drawer-nav">
+        <button (click)="toggleDrawer(); showSnackbar('Estás en el Feed')">Feed</button>
+        <button (click)="toggleDrawer(); showSnackbar('UTEQGram — comparte tus momentos')">Help</button>
+        <button class="notify-btn" (click)="enableNotifications()">
+          {{ notificationLabel() }}
+        </button>
+      </nav>
+    </aside>
+  }
+
+  <main class="content">
+    <img
+      class="hero"
+      src="/main-image.jpg"
+      srcset="/main-image-lg.jpg 1200w, /main-image.jpg 900w, /main-image-sm.jpg 480w"
+      alt="Explora la ciudad"
+    />
+
+    <section class="feed">
+      <h2>Comparte tus Momentos</h2>
+
+      @if (loading()) {
+        <p class="muted">Cargando momentos…</p>
+      }
+
+      <div class="cards">
+        @for (post of posts(); track $index) {
+          <article class="card">
+            <div class="card-image">
+              <img [src]="imageUrl(post.image)" alt="Imagen del momento" />
+              <h3 class="card-title">{{ post.title }}</h3>
+            </div>
+            <p class="card-location">{{ post.location }}</p>
+          </article>
+        } @empty {
+          @if (!loading()) {
+            <p class="muted">Todavía no hay momentos. ¡Comparte el primero!</p>
+          }
+        }
+      </div>
+    </section>
+  </main>
+
+  <button class="fab" (click)="openModal()" aria-label="Nuevo momento">
+    <i class="material-icons">add</i>
+  </button>
+
+  @if (modalOpen()) {
+    <div class="modal-overlay">
+      <div class="modal-panel">
+        <div class="field">
+          <input
+            type="text"
+            placeholder="Title"
+            [value]="title()"
+            (input)="title.set($any($event.target).value)"
+          />
+        </div>
+        <div class="field">
+          <input
+            type="text"
+            placeholder="Location"
+            [value]="location()"
+            (input)="location.set($any($event.target).value)"
+          />
+        </div>
+        <button class="btn primary" (click)="useLocation()">Usar mi ubicación</button>
+
+        <div class="camera-section">
+          <div class="camera-preview">
+            <img
+              [src]="preview()"
+              alt="Vista previa de la foto"
+              [style.display]="cameraActive() ? 'none' : 'block'"
+            />
+            <video
+              #videoPreview
+              autoplay
+              playsinline
+              muted
+              [style.display]="cameraActive() ? 'block' : 'none'"
+            ></video>
+          </div>
+          <div class="camera-actions">
+            <button class="btn primary" (click)="openCamera()">Abrir cámara</button>
+            <button
+              class="btn accent"
+              [style.display]="cameraActive() ? 'inline-block' : 'none'"
+              (click)="capturePhoto()"
+            >
+              Tomar foto
+            </button>
+            <label class="btn primary" for="photoInput">Elegir foto</label>
+            <input
+              #photoInput
+              id="photoInput"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              hidden
+              (change)="onFileChange($event)"
+            />
+            <button class="btn" (click)="removePhoto()">Quitar foto</button>
+          </div>
+          <p class="status" aria-live="polite">{{ status() }}</p>
+        </div>
+
+        <button class="btn accent publish" (click)="publish()">Postear!</button>
+        <button class="fab close" (click)="closeModal()" aria-label="Cerrar">
+          <i class="material-icons">close</i>
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (snackbar()) {
+    <div class="snackbar" role="status">{{ snackbar() }}</div>
+  }
+</div>
